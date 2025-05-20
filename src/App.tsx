@@ -58,21 +58,22 @@ function App() {
               }}
             />
           </div>
-          <div className="flex justify-between border border-2 p-1">
-            <div className="flex flex-row">
-              <div className="flex flex-col">
-                <h1>Registers:</h1>
-                <p>PC: 0xFFFF</p>
-                <p>S: 0xFF</p>
-                <p>A: 0xFF</p>
-                <p>X: 0xFF</p>
-                <p>Y: 0xFF</p>
-                <p>P: 0xFF</p>
-              </div>
-              <div className="flex flex-col">
-                <h1>Flags</h1>
-                <p>Carry: 1</p>
-              </div>
+          <div className="flex justify-around border p-2">
+            {/* Registers section */}
+            <div className="flex flex-col">
+              <h1 className="font-bold mb-1">Registers:</h1>
+              <p>PC: 0xFFFF</p>
+              <p>S: 0xFF</p>
+              <p>A: 0xFF</p>
+              <p>X: 0xFF</p>
+              <p>Y: 0xFF</p>
+              <p>P: 0xFF</p>
+            </div>
+
+            {/* Flags section */}
+            <div className="flex flex-col items-end">
+              <h1 className="font-bold mb-1">Flags</h1>
+              <p>Carry: 1</p>
             </div>
           </div>
         </div>
