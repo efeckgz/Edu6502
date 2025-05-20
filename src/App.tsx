@@ -3,7 +3,7 @@ import "./App.css";
 import { useState } from "react";
 
 import CodeEditor from "@uiw/react-textarea-code-editor";
-import { Button } from "./components/button";
+import { Button } from "./components/ui/button";
 import {
   Table,
   TableBody,
@@ -11,7 +11,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "./components/table";
+} from "./components/ui/table";
 import MemoryGrid from "./components/memorygrid";
 
 function App() {
