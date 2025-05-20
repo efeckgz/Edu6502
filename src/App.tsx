@@ -58,7 +58,10 @@ function App() {
               }}
             />
           </div>
-          <div className="flex justify-around border p-2">
+          <h1 className="flex justify-around text-3xl font-bold">
+            Processor State
+          </h1>
+          <div className="flex justify-around p-2">
             {/* Registers section */}
             <div className="flex flex-col">
               <h1 className="font-bold mb-1">Registers:</h1>
@@ -71,9 +74,15 @@ function App() {
             </div>
 
             {/* Flags section */}
-            <div className="flex flex-col items-end">
-              <h1 className="font-bold mb-1">Flags</h1>
+            <div className="flex flex-col items-start">
+              <h1 className="font-bold mb-1">Flags:</h1>
               <p>Carry: 1</p>
+              <p>Zero: 1</p>
+              <p>Interrupt: 1</p>
+              <p>Decimal: 1</p>
+              <p>Break: 1</p>
+              <p>Overflow: 1</p>
+              <p>Negative: 1</p>
             </div>
           </div>
         </div>
