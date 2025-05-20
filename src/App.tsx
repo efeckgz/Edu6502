@@ -4,6 +4,8 @@ import { useState } from "react";
 
 import CodeEditor from "@uiw/react-textarea-code-editor";
 
+import { Button } from "./components/button";
+
 function App() {
   const [code, setCode] = useState("lda #$42");
 
@@ -39,7 +41,11 @@ function App() {
 }
 
 const TopButton = ({ children }: { children: React.ReactNode }) => {
-  return <button className="mx-2">{children}</button>;
+  return (
+    <Button className="mx-2" variant="secondary">
+      {children}
+    </Button>
+  );
 };
 
 export default App;
