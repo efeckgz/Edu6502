@@ -6,6 +6,15 @@ import CodeEditor from "@uiw/react-textarea-code-editor";
 
 import { Button } from "./components/button";
 import { ScrollArea } from "./components/scrollarea";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "./components/table";
 
 function App() {
   const [code, setCode] = useState("lda #$42");
@@ -37,7 +46,8 @@ function App() {
           />
         </div>
       </div>
-      <StackView />
+      {/* <StackView /> */}
+      <StackTable />
     </div>
   );
 }
@@ -69,6 +79,31 @@ const StackView = () => {
         ))}
       </div>
     </ScrollArea>
+  );
+};
+
+const StackTable = () => {
+  return (
+    <Table>
+      {/* <TableCaption>A list of your recent invoices.</TableCaption> */}
+      <TableHeader>
+        <TableRow>
+          <TableHead className="w-[100px]">Stack Pointer</TableHead>
+          <TableHead>Value</TableHead>
+          {/* <TableHead>Method</TableHead> */}
+          {/* <TableHead className="text-right">Amount</TableHead> */}
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        <TableRow>
+          <TableCell className="font-medium">0xFF</TableCell>
+          <TableCell>0x00</TableCell>
+          {/* <TableCell>Paid</TableCell> */}
+          {/* <TableCell>Credit Card</TableCell> */}
+          {/* <TableCell className="text-right">$250.00</TableCell> */}
+        </TableRow>
+      </TableBody>
+    </Table>
   );
 };
 
