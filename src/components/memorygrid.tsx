@@ -13,8 +13,7 @@ const MemoryGrid = ({ memory }: { memory: Uint8Array }) => {
           <thead>
             <tr>
               <th className="w-10 h-10 bg-gray-800 text-white text-center sticky top-0 left-0 z-20">
-                {/* {" "} */}
-                Page \ Byte
+                Page <br /> Byte
               </th>
               {byteHeaders.map((byte) => (
                 <th

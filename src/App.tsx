@@ -14,6 +14,15 @@ import {
 } from "./components/ui/table";
 import MemoryGrid from "./components/memorygrid";
 
+type Registers = {
+  pc: number;
+  s: number;
+  a: number;
+  x: number;
+  y: number;
+  p: number;
+};
+
 function App() {
   const [code, setCode] = useState("lda #$42");
   const [memory] = useState<Uint8Array>(() => new Uint8Array(0x10000));
@@ -48,6 +57,23 @@ function App() {
                   "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
               }}
             />
+          </div>
+          <div className="flex justify-between border border-2 p-1">
+            <div className="flex flex-row">
+              <div className="flex flex-col">
+                <h1>Registers:</h1>
+                <p>PC: 0xFFFF</p>
+                <p>S: 0xFF</p>
+                <p>A: 0xFF</p>
+                <p>X: 0xFF</p>
+                <p>Y: 0xFF</p>
+                <p>P: 0xFF</p>
+              </div>
+              <div className="flex flex-col">
+                <h1>Flags</h1>
+                <p>Carry: 1</p>
+              </div>
+            </div>
           </div>
         </div>
         {/* Right size: Memory view */}
