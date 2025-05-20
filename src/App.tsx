@@ -50,10 +50,7 @@ function App() {
             />
           </div>
         </div>
-
-        {/* Right side: StackView */}
-        {/* <StackView /> */}
-        {/* <MemoryView /> */}
+        {/* Right size: Memory view */}
         <MemoryGrid memory={memory} />
       </div>
     </div>
