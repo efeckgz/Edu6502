@@ -1,51 +1,45 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import { invoke } from "@tauri-apps/api/core";
 import "./App.css";
 
-function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
+import { useState } from "react";
 
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    setGreetMsg(await invoke("greet", { name }));
-  }
+import CodeEditor from "@uiw/react-textarea-code-editor";
+
+function App() {
+  const [code, setCode] = useState("lda #$42");
 
   return (
-    <main className="container">
-      <h1>Welcome to Tauri + React</h1>
-
-      <div className="row">
-        <a href="https://vitejs.dev" target="_blank">
-          <img src="/vite.svg" className="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://reactjs.org" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div className="bg-black text-white min-h-screen">
+      <div className="flex flex-col mb-3 z-10">
+        <div className="flex flex-row m-5">
+          <TopButton>Assemble</TopButton>
+          <TopButton>Run</TopButton>
+          <TopButton>Step</TopButton>
+          <TopButton>Reset</TopButton>
+        </div>
+        <div className="w-1/3 mx-5">
+          <CodeEditor
+            value={code}
+            language="plaintext"
+            placeholder="Write your assembly here."
+            onChange={(evn) => setCode(evn.target.value)}
+            padding={15}
+            style={{
+              // backgroundColor: "#f5f5f5",
+              minHeight: 300,
+              backgroundColor: "white",
+              color: "black",
+              fontFamily:
+                "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
+            }}
+          />
+        </div>
       </div>
-      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
-
-      <form
-        className="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          greet();
-        }}
-      >
-        <input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
-        />
-        <button type="submit">Greet</button>
-      </form>
-      <p>{greetMsg}</p>
-    </main>
+    </div>
   );
 }
+
+const TopButton = ({ children }: { children: React.ReactNode }) => {
+  return <button className="mx-2">{children}</button>;
+};
 
 export default App;

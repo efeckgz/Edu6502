@@ -12,9 +12,9 @@
   "app": {
     "windows": [
       {
-        "title": "edu6502",
-        "width": 800,
-        "height": 600
+        "title": "Edu6502",
+        "width": 1280,
+        "height": 768
       }
     ],
     "security": {
