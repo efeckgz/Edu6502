@@ -5,6 +5,7 @@ import { useState } from "react";
 import CodeEditor from "@uiw/react-textarea-code-editor";
 
 import { Button } from "./components/button";
+import { ScrollArea } from "./components/scrollarea";
 
 function App() {
   const [code, setCode] = useState("lda #$42");
@@ -28,7 +29,7 @@ function App() {
             style={{
               // backgroundColor: "#f5f5f5",
               minHeight: 300,
-              backgroundColor: "white",
+              backgroundColor: "gray",
               color: "black",
               fontFamily:
                 "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
@@ -36,6 +37,7 @@ function App() {
           />
         </div>
       </div>
+      <StackView />
     </div>
   );
 }
@@ -45,6 +47,28 @@ const TopButton = ({ children }: { children: React.ReactNode }) => {
     <Button className="mx-2" variant="secondary">
       {children}
     </Button>
+  );
+};
+
+const StackView = () => {
+  const tags = Array.from({ length: 50 }).map(
+    (_, i, a) => `v1.2.0-beta.${a.length - i}`,
+  );
+
+  return (
+    <ScrollArea className="h-72 w-48 rounded-md border">
+      <div className="p-4">
+        <h4 className="mb-4 text-sm font-medium leading-none">Tags</h4>
+        {tags.map((tag) => (
+          <>
+            <div key={tag} className="text-sm">
+              {tag}
+            </div>
+            {/* <Separator className="my-2" /> */}
+          </>
+        ))}
+      </div>
+    </ScrollArea>
   );
 };
 
