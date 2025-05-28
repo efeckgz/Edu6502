@@ -1,6 +1,8 @@
 use lib6502::bus::{Bus, BusDevice};
 use lib6502::cpu::Cpu;
 
+use std::sync::Mutex;
+
 pub mod commands;
 
 pub struct Ram {
@@ -39,4 +41,12 @@ impl BusDevice for Devices {
             Devices::Ram(ram) => ram.write(addr, data),
         }
     }
+}
+
+pub fn initialize() -> Mutex<Cpu<Devices, 1>> {
+    let mut bus: Bus<Devices, 1> = Bus::new();
+    let ram = Devices::Ram(Ram::new());
+    bus.map_device(0x0000, 0xFFFF, ram).unwrap();
+
+    Mutex::new(Cpu::new(bus))
 }
