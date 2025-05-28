@@ -1,18 +1,16 @@
 import "./App.css";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+import { invoke } from "@tauri-apps/api/core";
 
 import CodeEditor from "@uiw/react-textarea-code-editor";
 import { Button } from "./components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "./components/ui/table";
+
 import MemoryGrid from "./components/memorygrid";
+import StatusView from "./components/statusview";
+
+type RegisterTuple = [number, number, number, number, number, number];
 
 type Registers = {
   pc: number;
@@ -26,6 +24,14 @@ type Registers = {
 function App() {
   const [code, setCode] = useState("lda #$42");
   const [memory] = useState<Uint8Array>(() => new Uint8Array(0x10000));
+
+  // Keep track of processor registers
+  const [registers, setRegisters] = useState<Registers | null>(null);
+  useEffect(() => {
+    invoke<RegisterTuple>("get_registers")
+      .then(([pc, s, a, x, y, p]) => setRegisters({ pc, s, a, x, y, p }))
+      .catch((e) => console.error("Error retrieving processor registers: ", e));
+  }, []);
 
   for (let i = 0; i < memory.length; i++) {
     memory[i] = 0xff;
@@ -58,33 +64,7 @@ function App() {
               }}
             />
           </div>
-          <h1 className="flex justify-around text-3xl font-bold">
-            Processor State
-          </h1>
-          <div className="flex justify-around p-2">
-            {/* Registers section */}
-            <div className="flex flex-col">
-              <h1 className="font-bold mb-1">Registers:</h1>
-              <p>PC: 0xFFFF</p>
-              <p>S: 0xFF</p>
-              <p>A: 0xFF</p>
-              <p>X: 0xFF</p>
-              <p>Y: 0xFF</p>
-              <p>P: 0xFF</p>
-            </div>
-
-            {/* Flags section */}
-            <div className="flex flex-col items-start">
-              <h1 className="font-bold mb-1">Flags:</h1>
-              <p>Carry: 1</p>
-              <p>Zero: 1</p>
-              <p>Interrupt: 1</p>
-              <p>Decimal: 1</p>
-              <p>Break: 1</p>
-              <p>Overflow: 1</p>
-              <p>Negative: 1</p>
-            </div>
-          </div>
+          <StatusView registers={registers} />
         </div>
         {/* Right size: Memory view */}
         <MemoryGrid memory={memory} />
@@ -98,49 +78,6 @@ const TopButton = ({ children }: { children: React.ReactNode }) => {
     <Button className="mx-2" variant="secondary">
       {children}
     </Button>
-  );
-};
-
-const StackView = () => {
-  return (
-    <Table className="w-1/3">
-      <TableHeader>
-        <TableRow>
-          <TableHead>Stack Pointer</TableHead>
-          <TableHead>Value</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        <TableRow>
-          <TableCell>0xFF</TableCell>
-          <TableCell>0x00</TableCell>
-        </TableRow>
-      </TableBody>
-    </Table>
-  );
-};
-
-const MemoryView = () => {
-  return (
-    <Table className="w-full">
-      {/* <TableCaption>A list of your recent invoices.</TableCaption> */}
-      <TableHeader>
-        <TableRow>
-          <TableHead className="w-[100px]">Invoice</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>Method</TableHead>
-          <TableHead className="text-right">Amount</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        <TableRow>
-          <TableCell className="font-medium">INV001</TableCell>
-          <TableCell>Paid</TableCell>
-          <TableCell>Credit Card</TableCell>
-          <TableCell className="text-right">$250.00</TableCell>
-        </TableRow>
-      </TableBody>
-    </Table>
   );
 };
 
