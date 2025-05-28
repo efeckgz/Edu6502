@@ -44,7 +44,7 @@ function App() {
         <div className="flex flex-col space-y-5">
           <div className="flex flex-row space-x-3">
             <TopButton>Assemble</TopButton>
-            <TopButton>Run</TopButton>
+            <TopButton onClick={() => invoke("run_asm")}>Run</TopButton>
             <TopButton>Step</TopButton>
             <TopButton>Reset</TopButton>
           </div>
@@ -73,9 +73,15 @@ function App() {
   );
 }
 
-const TopButton = ({ children }: { children: React.ReactNode }) => {
+const TopButton = ({
+  children,
+  onClick,
+}: {
+  children: React.ReactNode;
+  onClick?: () => void;
+}) => {
   return (
-    <Button className="mx-2" variant="secondary">
+    <Button className="mx-2" variant="secondary" onClick={onClick}>
       {children}
     </Button>
   );

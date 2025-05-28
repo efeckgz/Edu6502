@@ -12,7 +12,10 @@ pub fn run() {
             Ok(())
         })
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![commands::get_registers])
+        .invoke_handler(tauri::generate_handler![
+            commands::get_registers,
+            commands::run_asm
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
