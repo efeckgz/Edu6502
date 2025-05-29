@@ -1,33 +1,28 @@
 use std::sync::Mutex;
 
-use crate::api::Devices;
-use lib6502::{
-    bus::BusDevice,
-    cpu::{Cpu, RegisterState},
-};
+use crate::api::AppState;
+use lib6502::cpu::RegisterState;
 
-// Type alias to help typing
-type AppCpu = Mutex<Cpu<Devices, 1>>;
-
-static ROM: [u8; include_bytes!("a.out").len()] = *include_bytes!("a.out");
+use tokio;
 
 #[tauri::command]
-pub fn get_registers(state: tauri::State<'_, Mutex<Cpu<Devices, 1>>>) -> RegisterState {
-    let cpu = state.lock().unwrap();
-    cpu.get_state()
+pub fn get_registers(state: tauri::State<'_, Mutex<AppState>>) -> RegisterState {
+    let app_state = state.lock().unwrap();
+    app_state.registers
 }
 
 #[tauri::command]
-pub fn run_asm(state: tauri::State<'_, AppCpu>) {
-    let mut cpu = state.lock().unwrap();
-
-    // DO NOT DO THIS THIS IS ONLY TO TEST DO NOT LOAD PROGRAMS BY DOING BUS WRITES
-    for (addr, byte) in ROM.iter().enumerate() {
-        cpu.bus.write(addr as u16, *byte);
-    }
-
+pub async fn run_asm(state: tauri::State<'_, Mutex<AppState>>) -> Result<(), ()> {
     loop {
-        cpu.cycle(); // run foreva
-        println!("A: {}", cpu.a);
+        // Take the lock only for state update
+        {
+            let mut app_state = state.lock().unwrap();
+            app_state.cpu.cycle(); // run foreva
+            app_state.registers = app_state.cpu.get_state(); // Update the registers in state to show in frontend
+            println!("A: {}", app_state.cpu.a);
+        }
+
+        // Lock released, sleep thread
+        tokio::time::sleep(std::time::Duration::from_millis(32)).await; // Run at 30Hz
     }
 }

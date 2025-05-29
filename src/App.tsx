@@ -28,9 +28,20 @@ function App() {
   // Keep track of processor registers
   const [registers, setRegisters] = useState<Registers | null>(null);
   useEffect(() => {
-    invoke<RegisterTuple>("get_registers")
-      .then(([pc, s, a, x, y, p]) => setRegisters({ pc, s, a, x, y, p }))
-      .catch((e) => console.error("Error retrieving processor registers: ", e));
+    const interval = setInterval(async () => {
+      invoke<RegisterTuple>("get_registers")
+        .then(([pc, s, a, x, y, p]) => {
+          setRegisters({ pc, s, a, x, y, p });
+          console.log("Registers updated!");
+        })
+        .catch((e) =>
+          console.error("Error retrieving processor registers: ", e),
+        );
+    }, 4); // 4 ms polling
+    return () => clearInterval(interval);
+    // invoke<RegisterTuple>("get_registers")
+    //   .then(([pc, s, a, x, y, p]) => setRegisters({ pc, s, a, x, y, p }))
+    //   .catch((e) => console.error("Error retrieving processor registers: ", e));
   }, []);
 
   for (let i = 0; i < memory.length; i++) {

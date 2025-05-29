@@ -1,9 +1,23 @@
 use lib6502::bus::{Bus, BusDevice};
-use lib6502::cpu::Cpu;
+use lib6502::cpu::{self, Cpu};
 
 use std::sync::Mutex;
 
 pub mod commands;
+
+static ROM: [u8; include_bytes!("a.out").len()] = *include_bytes!("a.out");
+
+// The state of the application, managed by tauri::Manager
+pub struct AppState {
+    pub cpu: Cpu<Devices, 1>,
+    pub registers: cpu::RegisterState,
+}
+
+impl AppState {
+    fn new(cpu: Cpu<Devices, 1>, registers: cpu::RegisterState) -> Self {
+        AppState { cpu, registers }
+    }
+}
 
 pub struct Ram {
     bytes: [u8; 65536],
@@ -12,6 +26,12 @@ pub struct Ram {
 impl Ram {
     pub fn new() -> Self {
         Self { bytes: [0; 65536] }
+    }
+
+    pub fn load_program(&mut self, program: &[u8]) {
+        for (addr, byte) in program.iter().enumerate() {
+            self.write(addr as u16, *byte);
+        }
     }
 }
 
@@ -43,10 +63,18 @@ impl BusDevice for Devices {
     }
 }
 
-pub fn initialize() -> Mutex<Cpu<Devices, 1>> {
+pub fn initialize() -> Mutex<AppState> {
     let mut bus: Bus<Devices, 1> = Bus::new();
-    let ram = Devices::Ram(Ram::new());
+
+    let mut ram_inner = Ram::new();
+
+    // Load hard coded program during initialization.
+    // DO NOT DO THIS. THIS IS FOR TESTING ONLY. DO NOT LOAD HARD CODED PROGRAMS.
+    ram_inner.load_program(&ROM);
+
+    let ram = Devices::Ram(ram_inner);
     bus.map_device(0x0000, 0xFFFF, ram).unwrap();
 
-    Mutex::new(Cpu::new(bus))
+    // Give initial register values by hand
+    Mutex::new(AppState::new(Cpu::new(bus), (0, 255, 0, 0, 0, 0)))
 }
