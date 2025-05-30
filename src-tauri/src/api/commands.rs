@@ -1,6 +1,6 @@
 use std::sync::Mutex;
 
-use crate::api::AppState;
+use crate::api::{AppState, InternalState};
 use lib6502::cpu::RegisterState;
 
 use tauri::{ipc::Channel, State};
@@ -16,7 +16,7 @@ pub fn get_registers(state: tauri::State<'_, Mutex<AppState>>) -> RegisterState 
 #[tauri::command]
 pub async fn run_asm(
     state: State<'_, Mutex<AppState>>,
-    on_event: Channel<RegisterState>,
+    on_event: Channel<InternalState>,
 ) -> Result<(), ()> {
     // Set running to true in a separate block so that the lock is dropped.
     {
@@ -33,7 +33,13 @@ pub async fn run_asm(
             }
 
             app_state.cpu.cycle();
-            on_event.send(app_state.cpu.get_state()).unwrap();
+            on_event
+                .send(InternalState::new(
+                    app_state.cpu.get_state(),
+                    app_state.cpu.get_bus_pins(),
+                ))
+                .unwrap();
+            // on_event.send(app_state.cpu.get_state()).unwrap();
         }
 
         // Lock released, sleep thread

@@ -14,6 +14,40 @@ pub struct AppState {
     pub running: bool, // Flag to check if the emulator is running.
 }
 
+// Internal cpu state, constists of cpu registers and bus pins.
+// Sent via tauri::ipc::Channel while the cpu is running.
+#[derive(serde::Serialize, serde::Deserialize)]
+pub struct InternalState {
+    pc: u16,
+    s: u8,
+    a: u8,
+    x: u8,
+    y: u8,
+    p: u8,
+
+    addr: u16,
+    data: u8,
+    rw: bool,
+}
+
+impl InternalState {
+    pub fn new(regs: cpu::RegisterState, bus: (u16, u8, bool)) -> InternalState {
+        let (pc, s, a, x, y, p) = regs;
+        let (addr, data, rw) = bus;
+        InternalState {
+            pc,
+            s,
+            a,
+            x,
+            y,
+            p,
+            addr,
+            data,
+            rw,
+        }
+    }
+}
+
 impl AppState {
     fn new(cpu: Cpu<Devices, 1>, registers: cpu::RegisterState) -> Self {
         AppState {

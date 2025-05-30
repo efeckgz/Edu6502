@@ -8,44 +8,52 @@ import CodeEditor from "@uiw/react-textarea-code-editor";
 import { Button } from "./components/ui/button";
 
 import MemoryGrid from "./components/memorygrid";
-import StatusView from "./components/statusview";
+import StateView from "./components/stateview";
 
-type RegisterTuple = [number, number, number, number, number, number];
+import { InternalState } from "./components/stateview.tsx";
 
-type Registers = {
-  pc: number;
-  s: number;
-  a: number;
-  x: number;
-  y: number;
-  p: number;
-};
+// type RegisterTuple = [number, number, number, number, number, number];
+
+// type Registers = {
+//   pc: number;
+//   s: number;
+//   a: number;
+//   x: number;
+//   y: number;
+//   p: number;
+// };
 
 function App() {
-  const defaultRegisters: Registers = {
+  const defaultState: InternalState = {
     pc: 0,
     s: 255,
     a: 0,
     x: 0,
     y: 0,
     p: 0,
+
+    addr: 0,
+    data: 0,
+    rw: true,
   };
 
   const [code, setCode] = useState("lda #$42");
   const [memory] = useState<Uint8Array>(() => new Uint8Array(0x10000));
 
   // Keep track of processor registers
-  const [registers, setRegisters] = useState<Registers>(defaultRegisters);
+  const [internalState, setInternalState] =
+    useState<InternalState>(defaultState);
 
   for (let i = 0; i < memory.length; i++) {
     memory[i] = 0xff;
   }
 
   // This is the Tauri channel approach
-  const onEvent = new Channel<RegisterTuple>();
+  const onEvent = new Channel<InternalState>();
   onEvent.onmessage = (m) => {
-    let [pc, s, a, x, y, p] = m;
-    setRegisters({ pc, s, a, x, y, p });
+    // let [pc, s, a, x, y, p] = m;
+    // setInternalState({ pc, s, a, x, y, p });
+    setInternalState(m);
   };
 
   const runAsm = async () => {
@@ -80,7 +88,7 @@ function App() {
               }}
             />
           </div>
-          <StatusView registers={registers} />
+          <StateView state={internalState} />
         </div>
         {/* Right size: Memory view */}
         <MemoryGrid memory={memory} />
