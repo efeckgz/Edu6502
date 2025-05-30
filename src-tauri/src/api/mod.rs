@@ -53,7 +53,7 @@ impl AppState {
         AppState {
             cpu,
             registers,
-            running: true, // Actually this needs to be false.
+            running: false,
         }
     }
 }
