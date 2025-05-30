@@ -8,7 +8,7 @@ use tauri::{ipc::Channel, State};
 use tokio;
 
 #[tauri::command]
-pub fn get_registers(state: tauri::State<'_, Mutex<AppState>>) -> RegisterState {
+pub fn get_registers(state: State<'_, Mutex<AppState>>) -> RegisterState {
     let app_state = state.lock().unwrap();
     app_state.registers
 }

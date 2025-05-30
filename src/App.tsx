@@ -50,11 +50,7 @@ function App() {
 
   // This is the Tauri channel approach
   const onEvent = new Channel<InternalState>();
-  onEvent.onmessage = (m) => {
-    // let [pc, s, a, x, y, p] = m;
-    // setInternalState({ pc, s, a, x, y, p });
-    setInternalState(m);
-  };
+  onEvent.onmessage = (m) => setInternalState(m);
 
   const runAsm = async () => {
     await invoke("run_asm", { onEvent });
