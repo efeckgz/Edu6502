@@ -12,17 +12,6 @@ import StateView from "./components/stateview";
 
 import { InternalState } from "./components/stateview.tsx";
 
-// type RegisterTuple = [number, number, number, number, number, number];
-
-// type Registers = {
-//   pc: number;
-//   s: number;
-//   a: number;
-//   x: number;
-//   y: number;
-//   p: number;
-// };
-
 function App() {
   const defaultState: InternalState = {
     pc: 0,
@@ -40,12 +29,16 @@ function App() {
   const [code, setCode] = useState("lda #$42");
   const [memory] = useState<Uint8Array>(() => new Uint8Array(0x10000));
 
+  // Text to show on run button.
+  // Default is Run. When stopped show Continue.
+  const [runBtnText, setRunBtnText] = useState("Run");
+
   // Keep track of processor registers
   const [internalState, setInternalState] =
     useState<InternalState>(defaultState);
 
   for (let i = 0; i < memory.length; i++) {
-    memory[i] = 0xff;
+    memory[i] = 0x00;
   }
 
   // This is the Tauri channel approach
@@ -53,7 +46,18 @@ function App() {
   onEvent.onmessage = (m) => setInternalState(m);
 
   const runAsm = async () => {
+    setRunBtnText("Running...");
     await invoke("run_asm", { onEvent });
+  };
+
+  const stop = async () => {
+    setRunBtnText("Continue");
+    invoke("stop");
+  };
+
+  const reset = async () => {
+    setRunBtnText("Run");
+    // Invoke the command to reset the cpu
   };
 
   return (
@@ -63,10 +67,10 @@ function App() {
         <div className="flex flex-col space-y-5">
           <div className="flex flex-row space-x-3">
             <TopButton>Assemble</TopButton>
-            <TopButton onClick={() => runAsm()}>Run</TopButton>
-            <TopButton onClick={() => invoke("stop")}>Stop</TopButton>
+            <TopButton onClick={() => runAsm()}>{runBtnText}</TopButton>
+            <TopButton onClick={() => stop()}>Stop</TopButton>
             <TopButton>Step</TopButton>
-            <TopButton>Reset</TopButton>
+            <TopButton onClick={() => reset()}>Reset</TopButton>
           </div>
           <div className="w-[500px]">
             <CodeEditor
