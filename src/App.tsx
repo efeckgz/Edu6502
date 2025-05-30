@@ -74,7 +74,7 @@ function App() {
           <div className="flex flex-row space-x-3">
             <TopButton>Assemble</TopButton>
             <TopButton onClick={() => runAsm()}>Run</TopButton>
-            <TopButton>Stop</TopButton>
+            <TopButton onClick={() => invoke("stop")}>Stop</TopButton>
             <TopButton>Step</TopButton>
             <TopButton>Reset</TopButton>
           </div>

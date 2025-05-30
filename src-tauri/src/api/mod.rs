@@ -11,11 +11,16 @@ static ROM: [u8; include_bytes!("a.out").len()] = *include_bytes!("a.out");
 pub struct AppState {
     pub cpu: Cpu<Devices, 1>,
     pub registers: cpu::RegisterState,
+    pub running: bool, // Flag to check if the emulator is running.
 }
 
 impl AppState {
     fn new(cpu: Cpu<Devices, 1>, registers: cpu::RegisterState) -> Self {
-        AppState { cpu, registers }
+        AppState {
+            cpu,
+            registers,
+            running: true, // Actually this needs to be false.
+        }
     }
 }
 
