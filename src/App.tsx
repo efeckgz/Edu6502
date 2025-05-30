@@ -2,7 +2,8 @@ import "./App.css";
 
 import { useState, useEffect } from "react";
 
-import { invoke } from "@tauri-apps/api/core";
+import { invoke, Channel } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 
 import CodeEditor from "@uiw/react-textarea-code-editor";
 import { Button } from "./components/ui/button";
@@ -27,26 +28,43 @@ function App() {
 
   // Keep track of processor registers
   const [registers, setRegisters] = useState<Registers | null>(null);
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      invoke<RegisterTuple>("get_registers")
-        .then(([pc, s, a, x, y, p]) => {
-          setRegisters({ pc, s, a, x, y, p });
-          console.log("Registers updated!");
-        })
-        .catch((e) =>
-          console.error("Error retrieving processor registers: ", e),
-        );
-    }, 4); // 4 ms polling
-    return () => clearInterval(interval);
-    // invoke<RegisterTuple>("get_registers")
-    //   .then(([pc, s, a, x, y, p]) => setRegisters({ pc, s, a, x, y, p }))
-    //   .catch((e) => console.error("Error retrieving processor registers: ", e));
-  }, []);
+  // useEffect(() => {
+  //   const interval = setInterval(async () => {
+  //     invoke<RegisterTuple>("get_registers")
+  //       .then(([pc, s, a, x, y, p]) => {
+  //         setRegisters({ pc, s, a, x, y, p });
+  //         console.log("Registers updated!");
+  //       })
+  //       .catch((e) =>
+  //         console.error("Error retrieving processor registers: ", e),
+  //       );
+  //   }, 16); // 4 ms polling
+  //   return () => clearInterval(interval);
+  //   // invoke<RegisterTuple>("get_registers")
+  //   //   .then(([pc, s, a, x, y, p]) => setRegisters({ pc, s, a, x, y, p }))
+  //   //   .catch((e) => console.error("Error retrieving processor registers: ", e));
+  // }, []);
 
   for (let i = 0; i < memory.length; i++) {
     memory[i] = 0xff;
   }
+
+  // This is the Tauri event emit approach
+  // const unlisten = listen<RegisterTuple>("registers", (e) => {
+  //   let [pc, s, a, x, y, p] = e.payload;
+  //   setRegisters({ pc, s, a, x, y, p });
+  // });
+
+  // This is the Tauri channel approach
+  const onEvent = new Channel<RegisterTuple>();
+  onEvent.onmessage = (m) => {
+    let [pc, s, a, x, y, p] = m;
+    setRegisters({ pc, s, a, x, y, p });
+  };
+
+  const runAsm = async () => {
+    await invoke("run_asm", { onEvent });
+  };
 
   return (
     <div className="bg-black text-white min-h-screen overflow-hidden">
@@ -55,7 +73,8 @@ function App() {
         <div className="flex flex-col space-y-5">
           <div className="flex flex-row space-x-3">
             <TopButton>Assemble</TopButton>
-            <TopButton onClick={() => invoke("run_asm")}>Run</TopButton>
+            <TopButton onClick={() => runAsm()}>Run</TopButton>
+            <TopButton>Stop</TopButton>
             <TopButton>Step</TopButton>
             <TopButton>Reset</TopButton>
           </div>
