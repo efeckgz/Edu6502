@@ -34,13 +34,6 @@ pub async fn run_asm(
 
             app_state.cpu.cycle();
             on_event.send(app_state.cpu.get_state()).unwrap();
-            // if app_state.running {
-            //     app_state.cpu.cycle(); // run foreva
-            //     on_event.send(app_state.cpu.get_state()).unwrap();
-            //     println!("A: {}", app_state.cpu.a);
-            // } else {
-            //     return Ok(());
-            // }
         }
 
         // Lock released, sleep thread

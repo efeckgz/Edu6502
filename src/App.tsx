@@ -1,9 +1,8 @@
 import "./App.css";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 import { invoke, Channel } from "@tauri-apps/api/core";
-import { listen } from "@tauri-apps/api/event";
 
 import CodeEditor from "@uiw/react-textarea-code-editor";
 import { Button } from "./components/ui/button";
@@ -23,37 +22,24 @@ type Registers = {
 };
 
 function App() {
+  const defaultRegisters: Registers = {
+    pc: 0,
+    s: 255,
+    a: 0,
+    x: 0,
+    y: 0,
+    p: 0,
+  };
+
   const [code, setCode] = useState("lda #$42");
   const [memory] = useState<Uint8Array>(() => new Uint8Array(0x10000));
 
   // Keep track of processor registers
-  const [registers, setRegisters] = useState<Registers | null>(null);
-  // useEffect(() => {
-  //   const interval = setInterval(async () => {
-  //     invoke<RegisterTuple>("get_registers")
-  //       .then(([pc, s, a, x, y, p]) => {
-  //         setRegisters({ pc, s, a, x, y, p });
-  //         console.log("Registers updated!");
-  //       })
-  //       .catch((e) =>
-  //         console.error("Error retrieving processor registers: ", e),
-  //       );
-  //   }, 16); // 4 ms polling
-  //   return () => clearInterval(interval);
-  //   // invoke<RegisterTuple>("get_registers")
-  //   //   .then(([pc, s, a, x, y, p]) => setRegisters({ pc, s, a, x, y, p }))
-  //   //   .catch((e) => console.error("Error retrieving processor registers: ", e));
-  // }, []);
+  const [registers, setRegisters] = useState<Registers>(defaultRegisters);
 
   for (let i = 0; i < memory.length; i++) {
     memory[i] = 0xff;
   }
-
-  // This is the Tauri event emit approach
-  // const unlisten = listen<RegisterTuple>("registers", (e) => {
-  //   let [pc, s, a, x, y, p] = e.payload;
-  //   setRegisters({ pc, s, a, x, y, p });
-  // });
 
   // This is the Tauri channel approach
   const onEvent = new Channel<RegisterTuple>();
