@@ -39,7 +39,6 @@ pub async fn run_asm(
                     app_state.cpu.get_bus_pins(),
                 ))
                 .unwrap();
-            // on_event.send(app_state.cpu.get_state()).unwrap();
         }
 
         // Lock released, sleep thread
