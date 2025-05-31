@@ -35,6 +35,9 @@ function App() {
   // Default is Run. When stopped show Continue.
   const [runBtnText, setRunBtnText] = useState("Run");
 
+  // Use this state to disable some components while running
+  const [running, setRunning] = useState(false);
+
   // Keep track of processor registers
   const [internalState, setInternalState] =
     useState<InternalState>(defaultState);
@@ -74,16 +77,19 @@ function App() {
 
   const runAsm = async () => {
     setRunBtnText("Running...");
+    setRunning(true);
     await invoke("run_asm", { onEvent });
   };
 
   const stop = async () => {
     setRunBtnText("Continue");
+    setRunning(false);
     invoke("stop");
   };
 
   const reset = async () => {
     setRunBtnText("Run");
+    setRunning(false);
     // Invoke the command to reset the cpu
   };
 
@@ -94,10 +100,16 @@ function App() {
         <div className="flex flex-col space-y-5">
           <div className="flex flex-row space-x-3">
             <TopButton>Assemble</TopButton>
-            <TopButton onClick={() => runAsm()}>{runBtnText}</TopButton>
-            <TopButton onClick={() => stop()}>Stop</TopButton>
-            <TopButton>Step</TopButton>
-            <TopButton onClick={() => reset()}>Reset</TopButton>
+            <TopButton onClick={() => runAsm()} disabled={running}>
+              {runBtnText}
+            </TopButton>
+            <TopButton onClick={() => stop()} disabled={!running}>
+              Stop
+            </TopButton>
+            <TopButton disabled={running}>Step</TopButton>
+            <TopButton onClick={() => reset()} disabled={running}>
+              Reset
+            </TopButton>
           </div>
           <div className="w-[500px]">
             <CodeEditor
@@ -127,12 +139,19 @@ function App() {
 const TopButton = ({
   children,
   onClick,
+  disabled,
 }: {
   children: React.ReactNode;
   onClick?: () => void;
+  disabled?: boolean;
 }) => {
   return (
-    <Button className="mx-2" variant="secondary" onClick={onClick}>
+    <Button
+      className="mx-2"
+      disabled={disabled}
+      variant="secondary"
+      onClick={onClick}
+    >
       {children}
     </Button>
   );
