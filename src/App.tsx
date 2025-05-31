@@ -87,6 +87,10 @@ function App() {
     invoke("stop");
   };
 
+  const step = () => {
+    invoke("step", { onEvent });
+  };
+
   const reset = async () => {
     setRunBtnText("Run");
     setRunning(false);
@@ -106,7 +110,9 @@ function App() {
             <TopButton onClick={() => stop()} disabled={!running}>
               Stop
             </TopButton>
-            <TopButton disabled={running}>Step</TopButton>
+            <TopButton onClick={() => step()} disabled={running}>
+              Step
+            </TopButton>
             <TopButton onClick={() => reset()} disabled={running}>
               Reset
             </TopButton>

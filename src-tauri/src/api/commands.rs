@@ -42,7 +42,7 @@ pub async fn run_asm(
         }
 
         // Lock released, sleep thread
-        tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+        tokio::time::sleep(std::time::Duration::from_millis(16)).await;
     }
 }
 
@@ -51,6 +51,19 @@ pub fn stop(state: State<'_, Mutex<AppState>>) {
     // Stop a running emulator.
     let mut app_state = state.lock().unwrap();
     app_state.running = false;
+}
+
+// Step the cpu forward 1 cycle.
+#[tauri::command]
+pub fn step(state: State<'_, Mutex<AppState>>, on_event: Channel<InternalState>) {
+    let mut app_state = state.lock().unwrap();
+    app_state.cpu.cycle();
+    on_event
+        .send(InternalState::new(
+            app_state.cpu.get_state(),
+            app_state.cpu.get_bus_pins(),
+        ))
+        .unwrap();
 }
 
 // Use this when the application starts and a new program is loaded to display the ram contents.
