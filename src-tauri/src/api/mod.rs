@@ -18,6 +18,7 @@ pub struct AppState {
 // Sent via tauri::ipc::Channel while the cpu is running.
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct InternalState {
+    // Registers
     pc: u16,
     s: u8,
     a: u8,
@@ -25,6 +26,7 @@ pub struct InternalState {
     y: u8,
     p: u8,
 
+    // Bus pins
     addr: u16,
     data: u8,
     rw: bool,

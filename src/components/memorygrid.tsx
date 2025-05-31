@@ -2,6 +2,8 @@ const MemoryGrid = ({ memory }: { memory: Uint8Array }) => {
   const byteHeaders = Array.from({ length: 256 }, (_, i) => i);
   const pageIndices = Array.from({ length: 256 }, (_, i) => i);
 
+  // console.log("memory grid re rendered.");
+
   return (
     <div className="relative border border-gray-700 h-[700px] w-full">
       {" "}

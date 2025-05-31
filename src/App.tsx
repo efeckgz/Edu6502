@@ -55,9 +55,22 @@ function App() {
     });
   }, []);
 
+  const updateMem = (state: InternalState) => {
+    if (state.rw) {
+      return;
+    }
+
+    const mem = new Uint8Array(memory);
+    mem[state.addr] = state.data;
+    setMemory(mem);
+  };
+
   // This is the Tauri channel approach
   const onEvent = new Channel<InternalState>();
-  onEvent.onmessage = (m) => setInternalState(m);
+  onEvent.onmessage = (m) => {
+    setInternalState(m);
+    updateMem(m);
+  };
 
   const runAsm = async () => {
     setRunBtnText("Running...");
