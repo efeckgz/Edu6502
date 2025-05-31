@@ -113,6 +113,7 @@ function App() {
           </div>
           <div className="w-[500px]">
             <CodeEditor
+              disabled={running}
               value={code}
               language="plaintext"
               placeholder="Write your assembly here."
