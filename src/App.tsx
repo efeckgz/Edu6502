@@ -39,18 +39,6 @@ function App() {
   const [internalState, setInternalState] =
     useState<InternalState>(defaultState);
 
-  // memory[0x0000] = 100;
-  // memory[0x0001] = 0xa9;
-  // memory[0x0100] = 0x42;
-
-  // invoke("get_nonzero_bytes").then((r: any) => {
-  //   for (let i = 0; i < r.length; i++) {
-  //     let [addr, byte] = r[i];
-  //     console.log("Addr, Byte: ", addr, byte);
-  //     memory[addr] = byte;
-  //   }
-  // });
-
   useEffect(() => {
     invoke("get_nonzero_bytes").then((r: any) => {
       // Create a copy of memory
@@ -66,10 +54,6 @@ function App() {
       setMemory(newMem);
     });
   }, []);
-
-  // for (let i = 0; i < memory.length; i++) {
-  //   memory[i] = 0x00;
-  // }
 
   // This is the Tauri channel approach
   const onEvent = new Channel<InternalState>();
