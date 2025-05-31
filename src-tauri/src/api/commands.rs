@@ -1,7 +1,7 @@
 use std::sync::Mutex;
 
 use crate::api::{AppState, InternalState};
-use lib6502::cpu::RegisterState;
+use lib6502::{bus::BusDevice, cpu::RegisterState};
 
 use tauri::{ipc::Channel, State};
 
@@ -51,4 +51,19 @@ pub fn stop(state: State<'_, Mutex<AppState>>) {
     // Stop a running emulator.
     let mut app_state = state.lock().unwrap();
     app_state.running = false;
+}
+
+// Use this when the application starts and a new program is loaded to display the ram contents.
+#[tauri::command]
+pub fn get_nonzero_bytes(state: State<'_, Mutex<AppState>>) -> Vec<(u16, u8)> {
+    let mut app_state = state.lock().unwrap();
+    let mut result = vec![];
+
+    for i in 0..65535 {
+        let val = app_state.cpu.bus.read(i);
+        if val != 0 {
+            result.push((i, val));
+        }
+    }
+    result
 }

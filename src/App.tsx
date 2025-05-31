@@ -1,6 +1,6 @@
 import "./App.css";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { invoke, Channel } from "@tauri-apps/api/core";
 
@@ -27,7 +27,9 @@ function App() {
   };
 
   const [code, setCode] = useState("lda #$42");
-  const [memory] = useState<Uint8Array>(() => new Uint8Array(0x10000));
+  const [memory, setMemory] = useState<Uint8Array>(
+    () => new Uint8Array(0x10000),
+  );
 
   // Text to show on run button.
   // Default is Run. When stopped show Continue.
@@ -37,9 +39,37 @@ function App() {
   const [internalState, setInternalState] =
     useState<InternalState>(defaultState);
 
-  for (let i = 0; i < memory.length; i++) {
-    memory[i] = 0x00;
-  }
+  // memory[0x0000] = 100;
+  // memory[0x0001] = 0xa9;
+  // memory[0x0100] = 0x42;
+
+  // invoke("get_nonzero_bytes").then((r: any) => {
+  //   for (let i = 0; i < r.length; i++) {
+  //     let [addr, byte] = r[i];
+  //     console.log("Addr, Byte: ", addr, byte);
+  //     memory[addr] = byte;
+  //   }
+  // });
+
+  useEffect(() => {
+    invoke("get_nonzero_bytes").then((r: any) => {
+      // Create a copy of memory
+      const newMem = new Uint8Array(0x10000);
+
+      // Set the non-zero bytes
+      for (let i = 0; i < r.length; i++) {
+        const [addr, byte] = r[i];
+        newMem[addr] = byte;
+      }
+
+      // Update React state
+      setMemory(newMem);
+    });
+  }, []);
+
+  // for (let i = 0; i < memory.length; i++) {
+  //   memory[i] = 0x00;
+  // }
 
   // This is the Tauri channel approach
   const onEvent = new Channel<InternalState>();
