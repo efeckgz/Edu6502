@@ -5,7 +5,7 @@ use std::sync::Mutex;
 
 pub mod commands;
 
-static ROM: [u8; include_bytes!("a.out").len()] = *include_bytes!("a.out");
+pub static ROM: [u8; include_bytes!("a.out").len()] = *include_bytes!("a.out");
 
 // The state of the application, managed by tauri::Manager
 pub struct AppState {
@@ -74,6 +74,11 @@ impl Ram {
             self.write(addr as u16, *byte);
         }
     }
+
+    // Reset the ram to the 0 state.
+    pub fn reset(&mut self) {
+        self.bytes = [0; 65536]
+    }
 }
 
 impl BusDevice for Ram {
@@ -114,7 +119,7 @@ pub fn initialize() -> Mutex<AppState> {
     ram_inner.load_program(&ROM);
 
     let ram = Devices::Ram(ram_inner);
-    bus.map_device(0x0000, 0xFFFF, ram).unwrap();
+    bus.map_device(0x0000, 0xFFFF, ram, 1).unwrap();
 
     // Give initial register values by hand
     Mutex::new(AppState::new(Cpu::new(bus), (0, 255, 0, 0, 0, 0)))

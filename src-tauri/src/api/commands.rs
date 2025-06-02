@@ -1,14 +1,16 @@
 use std::sync::Mutex;
 
-use crate::api::{AppState, InternalState};
+use crate::api::{AppState, InternalState, ROM};
 use lib6502::{bus::BusDevice, cpu::RegisterState};
 
 use tauri::{ipc::Channel, State};
 
 use tokio;
 
+use super::Devices;
+
 #[tauri::command]
-pub fn get_registers(state: State<'_, Mutex<AppState>>) -> RegisterState {
+pub fn get_registers(state: State<Mutex<AppState>>) -> RegisterState {
     let app_state = state.lock().unwrap();
     app_state.registers
 }
@@ -42,12 +44,12 @@ pub async fn run_asm(
         }
 
         // Lock released, sleep thread
-        tokio::time::sleep(std::time::Duration::from_millis(16)).await;
+        tokio::time::sleep(std::time::Duration::from_millis(32)).await;
     }
 }
 
 #[tauri::command]
-pub fn stop(state: State<'_, Mutex<AppState>>) {
+pub fn stop(state: State<Mutex<AppState>>) {
     // Stop a running emulator.
     let mut app_state = state.lock().unwrap();
     app_state.running = false;
@@ -55,7 +57,7 @@ pub fn stop(state: State<'_, Mutex<AppState>>) {
 
 // Step the cpu forward 1 cycle.
 #[tauri::command]
-pub fn step(state: State<'_, Mutex<AppState>>, on_event: Channel<InternalState>) {
+pub fn step(state: State<Mutex<AppState>>, on_event: Channel<InternalState>) {
     let mut app_state = state.lock().unwrap();
     app_state.cpu.cycle();
     on_event
@@ -66,9 +68,24 @@ pub fn step(state: State<'_, Mutex<AppState>>, on_event: Channel<InternalState>)
         .unwrap();
 }
 
+#[tauri::command]
+pub fn reset(state: State<Mutex<AppState>>, on_event: Channel<InternalState>) {
+    let mut app_state = state.lock().unwrap();
+    app_state.cpu.reset(); // Reset the cpu
+
+    let ram = app_state.cpu.bus.borrow_device_mut(1).unwrap();
+    let Devices::Ram(r) = ram;
+    r.reset(); // Reset the ram
+    r.load_program(&ROM); // Load the current program back
+
+    // Streamt he cpu state. The frontend will call get_nonzero_bytes to get ram state.
+    let to_send = InternalState::new(app_state.cpu.get_state(), app_state.cpu.get_bus_pins());
+    on_event.send(to_send).unwrap();
+}
+
 // Use this when the application starts and a new program is loaded to display the ram contents.
 #[tauri::command]
-pub fn get_nonzero_bytes(state: State<'_, Mutex<AppState>>) -> Vec<(u16, u8)> {
+pub fn get_nonzero_bytes(state: State<Mutex<AppState>>) -> Vec<(u16, u8)> {
     let mut app_state = state.lock().unwrap();
     let mut result = vec![];
 

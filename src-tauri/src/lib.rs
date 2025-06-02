@@ -17,6 +17,7 @@ pub fn run() {
             commands::run_asm,
             commands::stop,
             commands::step,
+            commands::reset,
             commands::get_nonzero_bytes
         ])
         .run(tauri::generate_context!())

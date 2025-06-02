@@ -44,19 +44,32 @@ function App() {
 
   useEffect(() => {
     invoke("get_nonzero_bytes").then((r: any) => {
-      // Create a copy of memory
-      const newMem = new Uint8Array(0x10000);
-
-      // Set the non-zero bytes
-      for (let i = 0; i < r.length; i++) {
-        const [addr, byte] = r[i];
-        newMem[addr] = byte;
-      }
-
-      // Update React state
-      setMemory(newMem);
+      // // Create a copy of memory
+      // const newMem = new Uint8Array(0x10000);
+      // // Set the non-zero bytes
+      // for (let i = 0; i < r.length; i++) {
+      //   const [addr, byte] = r[i];
+      //   newMem[addr] = byte;
+      // }
+      // // Update React state
+      // setMemory(newMem);
+      loadInitialMem(r);
     });
   }, []);
+
+  const loadInitialMem = (bytes: any) => {
+    // Create a copy of memory
+    const newMem = new Uint8Array(0x10000);
+
+    // Set the non-zero bytes
+    for (let i = 0; i < bytes.length; i++) {
+      const [addr, byte] = bytes[i];
+      newMem[addr] = byte;
+    }
+
+    // Update React state
+    setMemory(newMem);
+  };
 
   const updateMem = (state: InternalState) => {
     if (state.rw) {
@@ -94,7 +107,12 @@ function App() {
   const reset = async () => {
     setRunBtnText("Run");
     setRunning(false);
-    // Invoke the command to reset the cpu
+
+    // Resets the cpu and ram, streams the cpu state
+    invoke("reset", { onEvent });
+
+    // Gets the ram
+    invoke("get_nonzero_bytes");
   };
 
   return (
