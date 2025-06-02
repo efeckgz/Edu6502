@@ -1,6 +1,6 @@
 use lib6502::bus::{Bus, BusDevice};
 use lib6502::cpu::{self, Cpu};
-use tauri::ipc::Channel;
+use tauri::{ipc::Channel, Result};
 
 use std::sync::Mutex;
 
@@ -126,10 +126,7 @@ pub fn initialize() -> Mutex<AppState> {
     Mutex::new(AppState::new(Cpu::new(bus), (0, 255, 0, 0, 0, 0)))
 }
 
-pub fn stream_cpu_state(
-    cpu: &Cpu<Devices, 1>,
-    chan: &Channel<InternalState>,
-) -> Result<(), tauri::Error> {
+pub fn stream_cpu_state(cpu: &Cpu<Devices, 1>, chan: &Channel<InternalState>) -> Result<()> {
     let to_send = InternalState::new(cpu.get_state(), cpu.get_bus_pins());
     chan.send(to_send)
 }

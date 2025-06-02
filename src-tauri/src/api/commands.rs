@@ -3,7 +3,7 @@ use std::sync::Mutex;
 use crate::api::{stream_cpu_state, AppState, InternalState, ROM};
 use lib6502::{bus::BusDevice, cpu::RegisterState};
 
-use tauri::{ipc::Channel, State};
+use tauri::{ipc::Channel, Result, State};
 
 use tokio;
 
@@ -19,7 +19,7 @@ pub fn get_registers(state: State<Mutex<AppState>>) -> RegisterState {
 pub async fn run_asm(
     state: State<'_, Mutex<AppState>>,
     chan: Channel<InternalState>,
-) -> Result<(), ()> {
+) -> Result<()> {
     // Set running to true in a separate block so that the lock is dropped.
     {
         let mut app_state = state.lock().unwrap();
@@ -35,7 +35,7 @@ pub async fn run_asm(
             }
 
             app_state.cpu.cycle();
-            stream_cpu_state(&app_state.cpu, &chan).unwrap();
+            stream_cpu_state(&app_state.cpu, &chan)?;
         }
 
         // Lock released, sleep thread
@@ -52,14 +52,15 @@ pub fn stop(state: State<Mutex<AppState>>) {
 
 // Step the cpu forward 1 cycle.
 #[tauri::command]
-pub fn step(state: State<Mutex<AppState>>, chan: Channel<InternalState>) {
+pub fn step(state: State<Mutex<AppState>>, chan: Channel<InternalState>) -> Result<()> {
     let mut app_state = state.lock().unwrap();
     app_state.cpu.cycle();
-    stream_cpu_state(&app_state.cpu, &chan).unwrap();
+    stream_cpu_state(&app_state.cpu, &chan)?;
+    Ok(())
 }
 
 #[tauri::command]
-pub fn reset(state: State<Mutex<AppState>>, chan: Channel<InternalState>) {
+pub fn reset(state: State<Mutex<AppState>>, chan: Channel<InternalState>) -> Result<()> {
     let mut app_state = state.lock().unwrap();
     app_state.cpu.reset(); // Reset the cpu
 
@@ -69,7 +70,8 @@ pub fn reset(state: State<Mutex<AppState>>, chan: Channel<InternalState>) {
     r.load_program(&ROM); // Load the current program back
 
     // Stream the cpu state. The frontend will call get_nonzero_bytes to get ram state.
-    stream_cpu_state(&app_state.cpu, &chan).unwrap();
+    stream_cpu_state(&app_state.cpu, &chan)?;
+    Ok(())
 }
 
 // Use this when the application starts and a new program is loaded to display the ram contents.

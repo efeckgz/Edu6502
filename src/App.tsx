@@ -91,7 +91,7 @@ function App() {
   const runAsm = async () => {
     setRunBtnText("Running...");
     setRunning(true);
-    await invoke("run_asm", { chan });
+    await invoke("run_asm", { chan }).catch((e) => console.log(e));
   };
 
   const stop = async () => {
@@ -101,7 +101,7 @@ function App() {
   };
 
   const step = () => {
-    invoke("step", { chan });
+    invoke("step", { chan }).catch((e) => console.log(e));
   };
 
   const reset = async () => {
@@ -109,7 +109,7 @@ function App() {
     setRunning(false);
 
     // Resets the cpu and ram, streams the cpu state
-    invoke("reset", { chan });
+    invoke("reset", { chan }).catch((e) => console.log(e));
 
     // Gets the ram
     invoke("get_nonzero_bytes");
