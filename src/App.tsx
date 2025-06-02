@@ -112,7 +112,7 @@ function App() {
     invoke("reset", { chan }).catch((e) => console.log(e));
 
     // Gets the ram
-    invoke("get_nonzero_bytes");
+    invoke("get_nonzero_bytes").then((bytes: any) => loadInitialMem(bytes));
   };
 
   return (
