@@ -86,27 +86,22 @@ pub fn get_nonzero_bytes(state: State<Mutex<AppState>>) -> Vec<(u16, u8)> {
 #[tauri::command]
 pub fn assemble_and_load(app_handle: AppHandle, program: &str) -> Result<String> {
     // Get the assembler dir
-    let mut dir = app_handle.path().app_data_dir()?;
-    dir.push("assembler");
+    let dir = app_handle.path().app_data_dir()?.join("assembler");
+
+    // Save the paths to variables
+    let assembler_path = dir.join("vasm6502_oldstyle");
+    let source_path = dir.join("temp.s");
+    let out_path = dir.join("temp.out");
 
     // Write the program into a file
-    dir.push("temp.s");
-    std::fs::write(&dir, program)?;
+    std::fs::write(&source_path, program)?;
 
     // Invoke the assembler
-    let s_dir = dir.clone();
-    dir.pop();
-    dir.push("vasm6502_oldstyle");
-    let vasm_dir = dir.clone();
-    dir.pop();
-    dir.push("temp.out");
-    let out_dir = dir.clone();
-
-    let output = Command::new(vasm_dir)
+    let output = Command::new(assembler_path)
         .arg("-Fbin")
-        .arg(s_dir)
+        .arg(source_path)
         .arg("-o")
-        .arg(out_dir)
+        .arg(out_path)
         .output()?;
 
     if !output.status.success() {
