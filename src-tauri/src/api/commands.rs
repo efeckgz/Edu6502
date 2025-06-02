@@ -1,6 +1,6 @@
 use std::sync::Mutex;
 
-use crate::api::{AppState, InternalState, ROM};
+use crate::api::{stream_cpu_state, AppState, InternalState, ROM};
 use lib6502::{bus::BusDevice, cpu::RegisterState};
 
 use tauri::{ipc::Channel, State};
@@ -18,7 +18,7 @@ pub fn get_registers(state: State<Mutex<AppState>>) -> RegisterState {
 #[tauri::command]
 pub async fn run_asm(
     state: State<'_, Mutex<AppState>>,
-    on_event: Channel<InternalState>,
+    chan: Channel<InternalState>,
 ) -> Result<(), ()> {
     // Set running to true in a separate block so that the lock is dropped.
     {
@@ -35,12 +35,7 @@ pub async fn run_asm(
             }
 
             app_state.cpu.cycle();
-            on_event
-                .send(InternalState::new(
-                    app_state.cpu.get_state(),
-                    app_state.cpu.get_bus_pins(),
-                ))
-                .unwrap();
+            stream_cpu_state(&app_state.cpu, &chan).unwrap();
         }
 
         // Lock released, sleep thread
@@ -57,19 +52,14 @@ pub fn stop(state: State<Mutex<AppState>>) {
 
 // Step the cpu forward 1 cycle.
 #[tauri::command]
-pub fn step(state: State<Mutex<AppState>>, on_event: Channel<InternalState>) {
+pub fn step(state: State<Mutex<AppState>>, chan: Channel<InternalState>) {
     let mut app_state = state.lock().unwrap();
     app_state.cpu.cycle();
-    on_event
-        .send(InternalState::new(
-            app_state.cpu.get_state(),
-            app_state.cpu.get_bus_pins(),
-        ))
-        .unwrap();
+    stream_cpu_state(&app_state.cpu, &chan).unwrap();
 }
 
 #[tauri::command]
-pub fn reset(state: State<Mutex<AppState>>, on_event: Channel<InternalState>) {
+pub fn reset(state: State<Mutex<AppState>>, chan: Channel<InternalState>) {
     let mut app_state = state.lock().unwrap();
     app_state.cpu.reset(); // Reset the cpu
 
@@ -78,9 +68,8 @@ pub fn reset(state: State<Mutex<AppState>>, on_event: Channel<InternalState>) {
     r.reset(); // Reset the ram
     r.load_program(&ROM); // Load the current program back
 
-    // Streamt he cpu state. The frontend will call get_nonzero_bytes to get ram state.
-    let to_send = InternalState::new(app_state.cpu.get_state(), app_state.cpu.get_bus_pins());
-    on_event.send(to_send).unwrap();
+    // Stream the cpu state. The frontend will call get_nonzero_bytes to get ram state.
+    stream_cpu_state(&app_state.cpu, &chan).unwrap();
 }
 
 // Use this when the application starts and a new program is loaded to display the ram contents.

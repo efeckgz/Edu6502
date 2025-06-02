@@ -82,8 +82,8 @@ function App() {
   };
 
   // This is the Tauri channel approach
-  const onEvent = new Channel<InternalState>();
-  onEvent.onmessage = (m) => {
+  const chan = new Channel<InternalState>();
+  chan.onmessage = (m) => {
     setInternalState(m);
     updateMem(m);
   };
@@ -91,7 +91,7 @@ function App() {
   const runAsm = async () => {
     setRunBtnText("Running...");
     setRunning(true);
-    await invoke("run_asm", { onEvent });
+    await invoke("run_asm", { chan });
   };
 
   const stop = async () => {
@@ -101,7 +101,7 @@ function App() {
   };
 
   const step = () => {
-    invoke("step", { onEvent });
+    invoke("step", { chan });
   };
 
   const reset = async () => {
@@ -109,7 +109,7 @@ function App() {
     setRunning(false);
 
     // Resets the cpu and ram, streams the cpu state
-    invoke("reset", { onEvent });
+    invoke("reset", { chan });
 
     // Gets the ram
     invoke("get_nonzero_bytes");
