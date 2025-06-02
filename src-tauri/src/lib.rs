@@ -1,4 +1,4 @@
-use tauri::{Manager, Result};
+use tauri::Manager;
 
 mod api;
 use api::commands;
@@ -8,7 +8,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
-            check_install_assembler(app)?;
+            api::check_install_assembler(app)?;
             let state = api::initialize();
             app.manage(state);
             Ok(())
@@ -24,19 +24,4 @@ pub fn run() {
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
-}
-
-fn check_install_assembler(app: &tauri::App) -> Result<()> {
-    let mut dir = app.path().app_data_dir()?;
-    dir.push("assembler");
-    if !dir.exists() {
-        std::fs::create_dir_all(&dir)?;
-    }
-
-    dir.push("vasm6502_oldstyle");
-    if dir.is_file() {
-        // println!("Yay!")
-    }
-
-    Ok(())
 }
