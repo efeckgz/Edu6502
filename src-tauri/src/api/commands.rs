@@ -1,19 +1,13 @@
 use std::sync::Mutex;
 
 use crate::api::{stream_cpu_state, AppState, InternalState, ROM};
-use lib6502::{bus::BusDevice, cpu::RegisterState};
+use lib6502::bus::BusDevice;
 
 use tauri::{ipc::Channel, Result, State};
 
 use tokio;
 
 use super::Devices;
-
-#[tauri::command]
-pub fn get_registers(state: State<Mutex<AppState>>) -> RegisterState {
-    let app_state = state.lock().unwrap();
-    app_state.registers
-}
 
 #[tauri::command]
 pub async fn run_asm(

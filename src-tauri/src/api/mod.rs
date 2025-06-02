@@ -11,7 +11,6 @@ pub static ROM: [u8; include_bytes!("a.out").len()] = *include_bytes!("a.out");
 // The state of the application, managed by tauri::Manager
 pub struct AppState {
     pub cpu: Cpu<Devices, 1>,
-    pub registers: cpu::RegisterState,
     pub running: bool, // Flag to check if the emulator is running.
 }
 
@@ -52,10 +51,9 @@ impl InternalState {
 }
 
 impl AppState {
-    fn new(cpu: Cpu<Devices, 1>, registers: cpu::RegisterState) -> Self {
+    fn new(cpu: Cpu<Devices, 1>) -> Self {
         AppState {
             cpu,
-            registers,
             running: false,
         }
     }
@@ -110,6 +108,7 @@ impl BusDevice for Devices {
     }
 }
 
+// Initialize the state to manage using tauri::Manager
 pub fn initialize() -> Mutex<AppState> {
     let mut bus: Bus<Devices, 1> = Bus::new();
 
@@ -123,9 +122,10 @@ pub fn initialize() -> Mutex<AppState> {
     bus.map_device(0x0000, 0xFFFF, ram, 1).unwrap();
 
     // Give initial register values by hand
-    Mutex::new(AppState::new(Cpu::new(bus), (0, 255, 0, 0, 0, 0)))
+    Mutex::new(AppState::new(Cpu::new(bus)))
 }
 
+// Stream the cpu internal state using tauri::ipc::Channel to the frontend.
 pub fn stream_cpu_state(cpu: &Cpu<Devices, 1>, chan: &Channel<InternalState>) -> Result<()> {
     let to_send = InternalState::new(cpu.get_state(), cpu.get_bus_pins());
     chan.send(to_send)
