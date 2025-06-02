@@ -1,9 +1,9 @@
-use std::sync::Mutex;
+use std::{process::Command, sync::Mutex};
 
 use crate::api::{stream_cpu_state, AppState, InternalState, ROM};
 use lib6502::bus::BusDevice;
 
-use tauri::{ipc::Channel, Result, State};
+use tauri::{ipc::Channel, AppHandle, Error, Manager, Result, State};
 
 use tokio;
 
@@ -81,4 +81,42 @@ pub fn get_nonzero_bytes(state: State<Mutex<AppState>>) -> Vec<(u16, u8)> {
         }
     }
     result
+}
+
+#[tauri::command]
+pub fn assemble_and_load(app_handle: AppHandle, program: &str) -> Result<String> {
+    // Get the assembler dir
+    let mut dir = app_handle.path().app_data_dir()?;
+    dir.push("assembler");
+
+    // Write the program into a file
+    dir.push("temp.s");
+    std::fs::write(&dir, program)?;
+
+    // Invoke the assembler
+    let s_dir = dir.clone();
+    dir.pop();
+    dir.push("vasm6502_oldstyle");
+    let vasm_dir = dir.clone();
+    dir.pop();
+    dir.push("temp.out");
+    let out_dir = dir.clone();
+
+    let output = Command::new(vasm_dir)
+        .arg("-Fbin")
+        .arg(s_dir)
+        .arg("-o")
+        .arg(out_dir)
+        .output()?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+        return Err(Error::from(std::io::Error::new(
+            std::io::ErrorKind::Other,
+            format!("{}", stderr),
+        )));
+    }
+
+    let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+    Ok(stdout)
 }

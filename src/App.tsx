@@ -3,6 +3,7 @@ import "./App.css";
 import { useState, useEffect } from "react";
 
 import { invoke, Channel } from "@tauri-apps/api/core";
+import { message } from "@tauri-apps/plugin-dialog";
 
 import CodeEditor from "@uiw/react-textarea-code-editor";
 import { Button } from "./components/ui/button";
@@ -88,6 +89,19 @@ function App() {
     updateMem(m);
   };
 
+  const assembleAndLoad = async () => {
+    await invoke("assemble_and_load", { program: code })
+      .then((stdout: any) => {
+        message(stdout, {
+          title: "Program assembled successfully",
+          kind: "info",
+        });
+      })
+      .catch((stderr: any) => {
+        message(stderr, { title: "Assembler failed", kind: "error" });
+      });
+  };
+
   const runAsm = async () => {
     setRunBtnText("Running...");
     setRunning(true);
@@ -121,7 +135,7 @@ function App() {
         {/* Left side: Buttons and CodeEditor */}
         <div className="flex flex-col space-y-5">
           <div className="flex flex-row space-x-3">
-            <TopButton>Assemble</TopButton>
+            <TopButton onClick={() => assembleAndLoad()}>Assemble</TopButton>
             <TopButton onClick={() => runAsm()} disabled={running}>
               {runBtnText}
             </TopButton>
