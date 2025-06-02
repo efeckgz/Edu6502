@@ -90,8 +90,10 @@ function App() {
   };
 
   const assembleAndLoad = async () => {
-    await invoke("assemble_and_load", { program: code })
+    setRunBtnText("Run");
+    await invoke("assemble_and_load", { program: code, chan })
       .then((stdout: any) => {
+        invoke("get_nonzero_bytes").then((bytes: any) => loadInitialMem(bytes));
         message(stdout, {
           title: "Program assembled successfully",
           kind: "info",

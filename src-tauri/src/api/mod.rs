@@ -6,8 +6,6 @@ use std::sync::Mutex;
 
 pub mod commands;
 
-pub static ROM: [u8; include_bytes!("a.out").len()] = *include_bytes!("a.out");
-
 const RAM_SIZE: usize = 65536;
 
 // The state of the application, managed by tauri::Manager
@@ -116,13 +114,7 @@ impl BusDevice for Devices {
 pub fn initialize() -> Mutex<AppState> {
     let mut bus: Bus<Devices, 1> = Bus::new();
 
-    let mut ram_inner = Ram::new();
-
-    // Load hard coded program during initialization.
-    // DO NOT DO THIS. THIS IS FOR TESTING ONLY. DO NOT LOAD HARD CODED PROGRAMS.
-    ram_inner.load_program(&ROM);
-
-    let ram = Devices::Ram(ram_inner);
+    let ram = Devices::Ram(Ram::new());
     bus.map_device(0x0000, 0xFFFF, ram, 1).unwrap();
 
     // Give initial register values by hand

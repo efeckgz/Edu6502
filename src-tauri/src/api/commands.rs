@@ -1,6 +1,6 @@
 use std::{process::Command, sync::Mutex};
 
-use crate::api::{stream_cpu_state, AppState, InternalState, ROM};
+use crate::api::{stream_cpu_state, AppState, InternalState};
 use lib6502::bus::BusDevice;
 
 use tauri::{ipc::Channel, AppHandle, Error, Manager, Result, State};
@@ -54,14 +54,26 @@ pub fn step(state: State<Mutex<AppState>>, chan: Channel<InternalState>) -> Resu
 }
 
 #[tauri::command]
-pub fn reset(state: State<Mutex<AppState>>, chan: Channel<InternalState>) -> Result<()> {
+pub fn reset(
+    app: AppHandle,
+    state: State<Mutex<AppState>>,
+    chan: Channel<InternalState>,
+) -> Result<()> {
     let mut app_state = state.lock().unwrap();
     app_state.cpu.reset(); // Reset the cpu
 
     let ram = app_state.cpu.bus.borrow_device_mut(1).unwrap();
     let Devices::Ram(r) = ram;
     r.reset(); // Reset the ram
-    r.load_program(&ROM); // Load the current program back
+
+    // Load the last assembled program
+    let p = app
+        .path()
+        .app_data_dir()?
+        .join("assembler")
+        .join("temp.out");
+    let program = std::fs::read(p)?;
+    r.load_program(&program);
 
     // Stream the cpu state. The frontend will call get_nonzero_bytes to get ram state.
     stream_cpu_state(&app_state.cpu, &chan)?;
@@ -84,7 +96,12 @@ pub fn get_nonzero_bytes(state: State<Mutex<AppState>>) -> Vec<(u16, u8)> {
 }
 
 #[tauri::command]
-pub fn assemble_and_load(app_handle: AppHandle, program: &str) -> Result<String> {
+pub fn assemble_and_load(
+    app_handle: AppHandle,
+    state: State<Mutex<AppState>>,
+    chan: Channel<InternalState>,
+    program: &str,
+) -> Result<String> {
     // Get the assembler dir
     let dir = app_handle.path().app_data_dir()?.join("assembler");
 
@@ -99,9 +116,9 @@ pub fn assemble_and_load(app_handle: AppHandle, program: &str) -> Result<String>
     // Invoke the assembler
     let output = Command::new(assembler_path)
         .arg("-Fbin")
-        .arg(source_path)
+        .arg(&source_path)
         .arg("-o")
-        .arg(out_path)
+        .arg(&out_path)
         .output()?;
 
     if !output.status.success() {
@@ -113,5 +130,9 @@ pub fn assemble_and_load(app_handle: AppHandle, program: &str) -> Result<String>
     }
 
     let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+
+    // Reset the cpu with the new program
+    reset(app_handle, state, chan)?;
+
     Ok(stdout)
 }
