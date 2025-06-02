@@ -8,6 +8,8 @@ pub mod commands;
 
 pub static ROM: [u8; include_bytes!("a.out").len()] = *include_bytes!("a.out");
 
+const RAM_SIZE: usize = 65536;
+
 // The state of the application, managed by tauri::Manager
 pub struct AppState {
     pub cpu: Cpu<Devices, 1>,
@@ -60,12 +62,14 @@ impl AppState {
 }
 
 pub struct Ram {
-    bytes: [u8; 65536],
+    bytes: [u8; RAM_SIZE],
 }
 
 impl Ram {
     pub fn new() -> Self {
-        Self { bytes: [0; 65536] }
+        Self {
+            bytes: [0; RAM_SIZE],
+        }
     }
 
     pub fn load_program(&mut self, program: &[u8]) {
@@ -76,7 +80,7 @@ impl Ram {
 
     // Reset the ram to the 0 state.
     pub fn reset(&mut self) {
-        self.bytes = [0; 65536]
+        self.bytes = [0; RAM_SIZE]
     }
 }
 
