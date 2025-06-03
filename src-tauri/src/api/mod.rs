@@ -2,8 +2,10 @@ pub mod commands;
 
 use lib6502::bus::Bus;
 use lib6502::cpu::Cpu;
-use std::sync::Mutex;
+use reqwest;
+use std::{fs::File, io::Write, os::unix::fs::PermissionsExt, path::PathBuf, sync::Mutex};
 use tauri::{ipc::Channel, Manager, Result};
+use tauri_plugin_dialog::{DialogExt, MessageDialogKind};
 
 mod types;
 
@@ -34,10 +36,48 @@ pub fn check_install_assembler(app: &tauri::App) -> Result<()> {
         std::fs::create_dir_all(&dir)?;
     }
 
-    dir.push("vasm6502_oldstyle");
-    if dir.is_file() {
-        // println!("Yay!")
+    let bin_path = dir.clone().join("vasm6502_oldstyle");
+    if bin_path.is_file() {
+        return Ok(());
     }
 
+    // Show dialog
+    let _ = app
+        .dialog()
+        .message(
+            "Downloading assembler. This is a one time operation. Do not close the application.",
+        )
+        .kind(MessageDialogKind::Info)
+        .title("Downloading assembler")
+        .show(|op| match op {
+            true => return,
+            false => return,
+        });
+
+    // Dr. Volker Barthelmann's vasm assembler.
+    let url = "http://sun.hasenbraten.de/vasm/daily/vasm.tar.gz";
+    let compressed = dir.join("vasm.tar.gz");
+    download_file(url, &compressed)?;
+
+    // Set executable permissions on Unix systems.
+    #[cfg(unix)]
+    {
+        // let mut perms = std::fs::metadata(&compressed)?.permissions();
+        // perms.set_mode(0o755); // rwxr-xr-x
+        // std::fs::set_permissions(&compressed, perms)?;
+    }
     Ok(())
+}
+
+fn download_file(url: &str, fname: &PathBuf) -> Result<File> {
+    let response = reqwest::blocking::get(url)
+        .map_err(|e| tauri::Error::from(std::io::Error::new(std::io::ErrorKind::Other, e)))?;
+    let bytes = response
+        .bytes()
+        .map_err(|e| tauri::Error::from(std::io::Error::new(std::io::ErrorKind::Other, e)))?;
+
+    let mut file = File::create(&fname)?;
+    file.write_all(&bytes)?;
+
+    Ok(file)
 }
