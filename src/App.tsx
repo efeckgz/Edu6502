@@ -160,7 +160,8 @@ function App() {
               onChange={(evn) => setCode(evn.target.value)}
               padding={15}
               style={{
-                minHeight: 300,
+                height: 300,
+                overflow: "auto",
                 backgroundColor: "white",
                 color: "black",
                 fontFamily:
