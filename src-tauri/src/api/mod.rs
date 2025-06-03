@@ -62,11 +62,11 @@ pub fn check_install_assembler(app: &tauri::App) -> Result<()> {
     let dest = dir.join("vasm.tar.gz");
     download_file(url, &dest)?;
 
-    // Unpack the tarball and build the assembler.
-    let mut build_dir = dir.clone();
-    decompress(&dest, &build_dir)?;
-    build_dir.push("vasm");
+    // Unpack the tarball.
+    decompress(&dest, &dir)?;
+    let build_dir = dir.join("vasm");
 
+    // Build the assembler.
     let mut cmd = if cfg!(windows) {
         todo!("Building the assembler on windows")
     } else {
@@ -95,6 +95,19 @@ pub fn check_install_assembler(app: &tauri::App) -> Result<()> {
         perms.set_mode(0o755); // rwxr-xr-x
         std::fs::set_permissions(&bin_name, perms)?;
     }
+
+    // Move the files out of build directory.
+    std::fs::rename(
+        build_dir.join("vasm6502_oldstyle"),
+        dir.join("vasm6502_oldstyle"),
+    )?;
+
+    std::fs::rename(build_dir.join("vobjdump"), dir.join("vobjdump"))?;
+
+    // Reamove the tarball and build directory
+    std::fs::remove_file(dir.join("vasm.tar.gz"))?;
+    std::fs::remove_dir_all(dir.join("vasm"))?;
+
     Ok(())
 }
 
