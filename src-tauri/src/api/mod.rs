@@ -48,7 +48,7 @@ pub fn check_install_assembler(app: &tauri::App) -> Result<()> {
     let _ = app
         .dialog()
         .message(
-            "Downloading assembler. This is a one time operation. Do not close the application.",
+           "Edu6502 will now download and build Dr. Volker Barthelmann's vasm assembler. This will only hapen at the first start of the program. Please do not close the application."
         )
         .kind(MessageDialogKind::Info)
         .title("Downloading assembler")
