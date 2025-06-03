@@ -59,33 +59,15 @@ pub fn check_install_assembler(app: &tauri::App) -> Result<()> {
 
     // Dr. Volker Barthelmann's vasm assembler.
     let url = "http://sun.hasenbraten.de/vasm/daily/vasm.tar.gz";
-    let dest = dir.join("vasm.tar.gz");
-    download_file(url, &dest)?;
+    let compressed = dir.join("vasm.tar.gz");
+    download_file(url, &compressed)?;
 
     // Unpack the tarball.
-    decompress(&dest, &dir)?;
-    let build_dir = dir.join("vasm");
+    decompress(&compressed, &dir)?;
 
     // Build the assembler.
-    let mut cmd = if cfg!(windows) {
-        todo!("Building the assembler on windows")
-    } else {
-        Command::new("make")
-    };
-
-    let output = cmd
-        .current_dir(&build_dir)
-        .arg("CPU=6502")
-        .arg("SYNTAX=oldstyle")
-        .output()?;
-
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr).to_string();
-        return Err(tauri::Error::from(std::io::Error::new(
-            std::io::ErrorKind::Other,
-            format!("{}", stderr),
-        )));
-    }
+    let build_dir = dir.join("vasm");
+    build_assembler(&build_dir)?;
 
     // Set executable permissions on Unix systems.
     #[cfg(unix)]
@@ -105,8 +87,8 @@ pub fn check_install_assembler(app: &tauri::App) -> Result<()> {
     std::fs::rename(build_dir.join("vobjdump"), dir.join("vobjdump"))?;
 
     // Reamove the tarball and build directory
-    std::fs::remove_file(dir.join("vasm.tar.gz"))?;
-    std::fs::remove_dir_all(dir.join("vasm"))?;
+    std::fs::remove_file(compressed)?;
+    std::fs::remove_dir_all(build_dir)?;
 
     Ok(())
 }
@@ -129,5 +111,32 @@ fn decompress(src: &PathBuf, out: &PathBuf) -> Result<()> {
     let tar = GzDecoder::new(tar_gz);
     let mut archive = Archive::new(tar);
     archive.unpack(out)?;
+    Ok(())
+}
+
+fn build_assembler(build_dir: &PathBuf) -> Result<()> {
+    let mut cmd = if cfg!(windows) {
+        // Use MinGW gcc to build the assembler on windows.
+        let mut c = Command::new("mingw32-make");
+        c.arg("-f").arg("Makefile.Cygwin");
+        c
+    } else {
+        Command::new("make")
+    };
+
+    let output = cmd
+        .current_dir(&build_dir)
+        .arg("CPU=6502")
+        .arg("SYNTAX=oldstyle")
+        .output()?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+        return Err(tauri::Error::from(std::io::Error::new(
+            std::io::ErrorKind::Other,
+            format!("{}", stderr),
+        )));
+    }
+
     Ok(())
 }
