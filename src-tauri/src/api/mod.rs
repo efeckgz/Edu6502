@@ -1,9 +1,12 @@
 pub mod commands;
 
+use flate2::read::GzDecoder;
 use lib6502::bus::Bus;
 use lib6502::cpu::Cpu;
 use reqwest;
+use std::process::Command;
 use std::{fs::File, io::Write, os::unix::fs::PermissionsExt, path::PathBuf, sync::Mutex};
+use tar::Archive;
 use tauri::{ipc::Channel, Manager, Result};
 use tauri_plugin_dialog::{DialogExt, MessageDialogKind};
 
@@ -56,20 +59,46 @@ pub fn check_install_assembler(app: &tauri::App) -> Result<()> {
 
     // Dr. Volker Barthelmann's vasm assembler.
     let url = "http://sun.hasenbraten.de/vasm/daily/vasm.tar.gz";
-    let compressed = dir.join("vasm.tar.gz");
-    download_file(url, &compressed)?;
+    let dest = dir.join("vasm.tar.gz");
+    download_file(url, &dest)?;
+
+    // Unpack the tarball and build the assembler.
+    let mut build_dir = dir.clone();
+    decompress(&dest, &build_dir)?;
+    build_dir.push("vasm");
+
+    let mut cmd = if cfg!(windows) {
+        todo!("Building the assembler on windows")
+    } else {
+        Command::new("make")
+    };
+
+    let output = cmd
+        .current_dir(&build_dir)
+        .arg("CPU=6502")
+        .arg("SYNTAX=oldstyle")
+        .output()?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+        return Err(tauri::Error::from(std::io::Error::new(
+            std::io::ErrorKind::Other,
+            format!("{}", stderr),
+        )));
+    }
 
     // Set executable permissions on Unix systems.
     #[cfg(unix)]
     {
-        // let mut perms = std::fs::metadata(&compressed)?.permissions();
-        // perms.set_mode(0o755); // rwxr-xr-x
-        // std::fs::set_permissions(&compressed, perms)?;
+        let bin_name = build_dir.join("vasm6502_oldstyle");
+        let mut perms = std::fs::metadata(&bin_name)?.permissions();
+        perms.set_mode(0o755); // rwxr-xr-x
+        std::fs::set_permissions(&bin_name, perms)?;
     }
     Ok(())
 }
 
-fn download_file(url: &str, fname: &PathBuf) -> Result<File> {
+fn download_file(url: &str, fname: &PathBuf) -> Result<()> {
     let response = reqwest::blocking::get(url)
         .map_err(|e| tauri::Error::from(std::io::Error::new(std::io::ErrorKind::Other, e)))?;
     let bytes = response
@@ -79,5 +108,13 @@ fn download_file(url: &str, fname: &PathBuf) -> Result<File> {
     let mut file = File::create(&fname)?;
     file.write_all(&bytes)?;
 
-    Ok(file)
+    Ok(())
+}
+
+fn decompress(src: &PathBuf, out: &PathBuf) -> Result<()> {
+    let tar_gz = File::open(src)?;
+    let tar = GzDecoder::new(tar_gz);
+    let mut archive = Archive::new(tar);
+    archive.unpack(out)?;
+    Ok(())
 }
