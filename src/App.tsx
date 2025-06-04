@@ -44,9 +44,6 @@ function App() {
   const [internalState, setInternalState] =
     useState<InternalState>(defaultState);
 
-  // The help modal displayed state
-  const [helpShown, setHelpShown] = useState(false);
-
   useEffect(() => {
     invoke("get_nonzero_bytes").then((r: any) => {
       loadInitialMem(r);
