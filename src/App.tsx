@@ -10,6 +10,7 @@ import { Button } from "./components/ui/button";
 
 import MemoryGrid from "./components/memorygrid";
 import StateView from "./components/stateview";
+import HelpModal from "./components/helpmodal.tsx";
 
 import { InternalState } from "./components/stateview.tsx";
 
@@ -43,17 +44,11 @@ function App() {
   const [internalState, setInternalState] =
     useState<InternalState>(defaultState);
 
+  // The help modal displayed state
+  const [helpShown, setHelpShown] = useState(false);
+
   useEffect(() => {
     invoke("get_nonzero_bytes").then((r: any) => {
-      // // Create a copy of memory
-      // const newMem = new Uint8Array(0x10000);
-      // // Set the non-zero bytes
-      // for (let i = 0; i < r.length; i++) {
-      //   const [addr, byte] = r[i];
-      //   newMem[addr] = byte;
-      // }
-      // // Update React state
-      // setMemory(newMem);
       loadInitialMem(r);
     });
   }, []);
@@ -150,6 +145,7 @@ function App() {
             <TopButton onClick={() => reset()} disabled={running}>
               Reset
             </TopButton>
+            <HelpModal />
           </div>
           <div className="w-[500px]">
             <CodeEditor
