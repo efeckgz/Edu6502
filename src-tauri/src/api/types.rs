@@ -3,6 +3,25 @@ use lib6502::cpu::{self, Cpu};
 
 const RAM_SIZE: usize = 65536;
 
+const fn init_base_ram() -> [u8; RAM_SIZE] {
+    let mut bytes = [0xEA; RAM_SIZE];
+    let mut i = 0;
+
+    // Fill 0x0000 to 0x05FF with 0x00
+    while i < 0x0600 {
+        bytes[i] = 0x00;
+        i += 1;
+    }
+
+    // Set reset vector
+    bytes[0xFFFC] = 0x00;
+    bytes[0xFFFD] = 0x06;
+
+    bytes
+}
+
+const BASE_RAM: [u8; RAM_SIZE] = init_base_ram();
+
 // The state of the application, managed by tauri::Manager
 pub struct AppState {
     pub cpu: Cpu<Devices, 1>,
@@ -60,13 +79,7 @@ pub struct Ram {
 
 impl Ram {
     pub fn new() -> Self {
-        let mut bytes = [0xEA; RAM_SIZE];
-
-        // Set the reset vector to start exectuion from 0x0600
-        bytes[0xFFFC] = 0x00;
-        bytes[0xFFFD] = 0x06;
-
-        Self { bytes }
+        Self { bytes: BASE_RAM }
     }
 
     pub fn load_program(&mut self, program: &[u8]) {
@@ -77,14 +90,7 @@ impl Ram {
 
     // Reset the ram to the 0 state.
     pub fn reset(&mut self) {
-        self.bytes = {
-            let mut _bytes = [0xEA; RAM_SIZE];
-
-            // Set the reset vector to start exectuion from 0x0600
-            _bytes[0xFFFC] = 0x00;
-            _bytes[0xFFFD] = 0x06;
-            _bytes
-        }
+        self.bytes = BASE_RAM;
     }
 }
 
