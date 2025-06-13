@@ -29,9 +29,11 @@ function App() {
   };
 
   const [code, setCode] = useState("");
-  const [memory, setMemory] = useState<Uint8Array>(
-    () => new Uint8Array(0x10000),
-  );
+  const [memory, setMemory] = useState<Uint8Array>(() => {
+    let bytes = new Uint8Array(0x10000);
+    bytes.fill(0xea);
+    return bytes;
+  });
 
   // Text to show on run button.
   // Default is Run. When stopped show Continue.
@@ -70,9 +72,11 @@ function App() {
       return;
     }
 
-    const mem = new Uint8Array(memory);
-    mem[state.addr] = state.data;
-    setMemory(mem);
+    setMemory((mem) => {
+      let newmem = new Uint8Array(mem);
+      newmem[state.addr] = state.data;
+      return newmem;
+    });
   };
 
   // This is the Tauri channel approach
