@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { invoke, Channel } from "@tauri-apps/api/core";
 import { message } from "@tauri-apps/plugin-dialog";
 
-import CodeEditor from "@uiw/react-textarea-code-editor";
+import AceEditor from "react-ace";
 import { Button } from "./components/ui/button";
 
 import MemoryGrid from "./components/memorygrid";
@@ -28,7 +28,7 @@ function App() {
     rw: true,
   };
 
-  const [code, setCode] = useState("lda #$42");
+  const [code, setCode] = useState("");
   const [memory, setMemory] = useState<Uint8Array>(
     () => new Uint8Array(0x10000),
   );
@@ -145,21 +145,13 @@ function App() {
             <HelpModal />
           </div>
           <div className="w-[500px]">
-            <CodeEditor
-              disabled={running}
-              value={code}
-              language="plaintext"
-              placeholder="Write your assembly here."
-              onChange={(evn) => setCode(evn.target.value)}
-              padding={15}
-              style={{
-                height: 300,
-                overflow: "auto",
-                backgroundColor: "white",
-                color: "black",
-                fontFamily:
-                  "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
-              }}
+            <AceEditor
+              height="300px"
+              mode="markdown"
+              theme="github"
+              onChange={(newCode) => setCode(newCode)}
+              name="UNIQUE_ID_OF_DIV"
+              editorProps={{ $blockScrolling: true }}
             />
           </div>
           <StateView state={internalState} />

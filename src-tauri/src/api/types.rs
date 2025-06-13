@@ -60,20 +60,31 @@ pub struct Ram {
 
 impl Ram {
     pub fn new() -> Self {
-        Self {
-            bytes: [0; RAM_SIZE],
-        }
+        let mut bytes = [0; RAM_SIZE];
+
+        // Set the reset vector to start exectuion from 0x0600
+        bytes[0xFFFC] = 0x00;
+        bytes[0xFFFD] = 0x06;
+
+        Self { bytes }
     }
 
     pub fn load_program(&mut self, program: &[u8]) {
         for (addr, byte) in program.iter().enumerate() {
-            self.write(addr as u16, *byte);
+            self.write(addr as u16 + 0x0600, *byte);
         }
     }
 
     // Reset the ram to the 0 state.
     pub fn reset(&mut self) {
-        self.bytes = [0; RAM_SIZE]
+        self.bytes = {
+            let mut _bytes = [0; RAM_SIZE];
+
+            // Set the reset vector to start exectuion from 0x0600
+            _bytes[0xFFFC] = 0x00;
+            _bytes[0xFFFD] = 0x06;
+            _bytes
+        }
     }
 }
 
