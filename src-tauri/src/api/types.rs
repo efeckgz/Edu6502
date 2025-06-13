@@ -60,7 +60,7 @@ pub struct Ram {
 
 impl Ram {
     pub fn new() -> Self {
-        let mut bytes = [0; RAM_SIZE];
+        let mut bytes = [0xEA; RAM_SIZE];
 
         // Set the reset vector to start exectuion from 0x0600
         bytes[0xFFFC] = 0x00;
@@ -78,7 +78,7 @@ impl Ram {
     // Reset the ram to the 0 state.
     pub fn reset(&mut self) {
         self.bytes = {
-            let mut _bytes = [0; RAM_SIZE];
+            let mut _bytes = [0xEA; RAM_SIZE];
 
             // Set the reset vector to start exectuion from 0x0600
             _bytes[0xFFFC] = 0x00;

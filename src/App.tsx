@@ -53,6 +53,7 @@ function App() {
   const loadInitialMem = (bytes: any) => {
     // Create a copy of memory
     const newMem = new Uint8Array(0x10000);
+    newMem.fill(0xea);
 
     // Set the non-zero bytes
     for (let i = 0; i < bytes.length; i++) {

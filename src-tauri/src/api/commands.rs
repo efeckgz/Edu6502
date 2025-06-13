@@ -88,7 +88,7 @@ pub fn get_nonzero_bytes(state: State<Mutex<AppState>>) -> Vec<(u16, u8)> {
 
     for i in 0..65535 {
         let val = app_state.cpu.bus.read(i);
-        if val != 0 {
+        if val != 0xEA {
             result.push((i, val));
         }
     }
